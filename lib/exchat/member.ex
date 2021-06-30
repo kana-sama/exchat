@@ -1,4 +1,22 @@
 defmodule ExChat.Member do
+  defmodule Registry do
+    def child_spec(_) do
+      Elixir.Registry.child_spec(keys: :duplicate, name: __MODULE__)
+    end
+
+    def register(name) do
+      Elixir.Registry.register(__MODULE__, name, {})
+    end
+
+    def dispatch(name, f) do
+      Elixir.Registry.dispatch(__MODULE__, name, fn entries ->
+        for {pid, _} <- entries do
+          f.(pid)
+        end
+      end)
+    end
+  end
+
   def notify_login(member, logined_name) do
     send_json(member, %{login: logined_name})
   end
@@ -12,7 +30,7 @@ defmodule ExChat.Member do
   end
 
   defp send_json(member, value) do
-    ExChat.Member.Registry.dispatch(member, fn pid ->
+    Registry.dispatch(member, fn pid ->
       send(pid, {:send_json, value})
     end)
   end
@@ -28,7 +46,7 @@ defmodule ExChat.Member do
 
     @impl :cowboy_websocket
     def websocket_init(name) do
-      ExChat.Member.Registry.register(name)
+      Registry.register(name)
       members = ExChat.Room.login(name)
       {[{:text, Poison.encode!(%{members: members})}], name}
     end

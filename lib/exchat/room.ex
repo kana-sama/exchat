@@ -1,25 +1,22 @@
 defmodule ExChat.Room do
-  def child_spec(_) do
-    %{
-      id: __MODULE__,
-      start: {GenServer, :start_link, [__MODULE__.Server, {}, [name: __MODULE__]]}
-    }
-  end
-
   def login(name) do
-    GenServer.call(__MODULE__, {:login, name})
+    GenServer.call(__MODULE__.Server, {:login, name})
   end
 
   def logout(name) do
-    GenServer.cast(__MODULE__, {:logout, name})
+    GenServer.cast(__MODULE__.Server, {:logout, name})
   end
 
   def post(author, content) do
-    GenServer.cast(__MODULE__, {:post, author, content})
+    GenServer.cast(__MODULE__.Server, {:post, author, content})
   end
 
   defmodule Server do
     use GenServer
+
+    def start_link(_) do
+      GenServer.start_link(__MODULE__, {}, name: __MODULE__)
+    end
 
     @impl GenServer
     def init({}) do

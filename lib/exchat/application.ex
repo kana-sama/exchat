@@ -5,7 +5,7 @@ defmodule ExChat.Application do
   def start(_type, _args) do
     children = [
       ExChat.Member.Registry,
-      ExChat.Room,
+      ExChat.Room.Server,
       Plug.Cowboy.child_spec(
         scheme: :http,
         plug: ExChat.Router,
